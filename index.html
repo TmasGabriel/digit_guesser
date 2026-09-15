@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Digit Guesser</title>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <main class="app-container">
+
+        <!-- File Upload Section -->
+        <section class="file-upload-section">
+            <div class="file-group">
+                <label for="imagesFile">Images:</label>
+                <input type="file" id="imagesFile">
+            </div>
+            <div class="file-group">
+                <label for="labelsFile">Labels:</label>
+                <input type="file" id="labelsFile">
+            </div>
+        </section>
+
+        <!-- Main Section -->
+        <section class="workspace">
+            
+            <div class="controls">
+                <button type="button" class="button iterate" id="iterateButton">
+                    Train
+                </button>
+                <button type="button" class="button test" id="clearButton">
+                    Clear
+                </button>
+            </div>
+
+            <div id="canvasContainer" class="canvas-card">
+                <div class="canvas-label">448 x 448</div>
+                <canvas id="myCanvas" width="448" height="448" oncontextmenu="return false;"></canvas>
+            </div>
+
+            <div class="probability-card" id="probabilityCard">
+                <div class="probability-list">
+                    <div class="prob-row" data-digit="0">
+                        <span class="prob-digit">0</span>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill" id="bar-0" style="width: 0%;"></div>
+                        </div>
+                        <span class="prob-value" id="val-0">0.0%</span>
+                    </div>
+                    <div class="prob-row" data-digit="1">
+                        <span class="prob-digit">1</span>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill" id="bar-1" style="width: 0%;"></div>
+                        </div>
+                        <span class="prob-value" id="val-1">0.0%</span>
+                    </div>
+                    <div class="prob-row" data-digit="2">
+                        <span class="prob-digit">2</span>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill" id="bar-2" style="width: 0%;"></div>
+                        </div>
+                        <span class="prob-value" id="val-2">0.0%</span>
+                    </div>
+                    <div class="prob-row" data-digit="3">
+                        <span class="prob-digit">3</span>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill" id="bar-3" style="width: 0%;"></div>
+                        </div>
+                        <span class="prob-value" id="val-3">0.0%</span>
+                    </div>
+                    <div class="prob-row" data-digit="4">
+                        <span class="prob-digit">4</span>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill" id="bar-4" style="width: 0%;"></div>
+                        </div>
+                        <span class="prob-value" id="val-4">0.0%</span>
+                    </div>
+                    <div class="prob-row" data-digit="5">
+                        <span class="prob-digit">5</span>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill" id="bar-5" style="width: 0%;"></div>
+                        </div>
+                        <span class="prob-value" id="val-5">0.0%</span>
+                    </div>
+                    <div class="prob-row" data-digit="6">
+                        <span class="prob-digit">6</span>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill" id="bar-6" style="width: 0%;"></div>
+                        </div>
+                        <span class="prob-value" id="val-6">0.0%</span>
+                    </div>
+                    <div class="prob-row" data-digit="7">
+                        <span class="prob-digit">7</span>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill" id="bar-7" style="width: 0%;"></div>
+                        </div>
+                        <span class="prob-value" id="val-7">0.0%</span>
+                    </div>
+                    <div class="prob-row" data-digit="8">
+                        <span class="prob-digit">8</span>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill" id="bar-8" style="width: 0%;"></div>
+                        </div>
+                        <span class="prob-value" id="val-8">0.0%</span>
+                    </div>
+                    <div class="prob-row" data-digit="9">
+                        <span class="prob-digit">9</span>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill" id="bar-9" style="width: 0%;"></div>
+                        </div>
+                        <span class="prob-value" id="val-9">0.0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="canvas-card">
+                <div class="canvas-label">28 x 28</div>
+                <canvas id="theCanvas" width="448" height="448" oncontextmenu="return false;"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
