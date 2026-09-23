@@ -24,6 +24,17 @@
             </div>
         </section>
 
+        <section class="file-upload-section">
+            <div class="file-group">
+                <label for="imagesFile">Images:</label>
+                <input type="file" id="imagesTestFile">
+            </div>
+            <div class="file-group">
+                <label for="labelsFile">Labels:</label>
+                <input type="file" id="labelsTestFile">
+            </div>
+        </section>
+
         <!-- Main Section -->
         <section class="workspace">
             
@@ -31,8 +42,11 @@
                 <button type="button" class="button iterate" id="iterateButton">
                     Train
                 </button>
-                <button type="button" class="button test" id="clearButton">
+                <button type="button" class="button clear" id="clearButton">
                     Clear
+                </button>
+                <button type="button" class="button test" id="testButton">
+                    Test
                 </button>
             </div>
 

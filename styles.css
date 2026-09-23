@@ -90,12 +90,21 @@ input[type="file"]::file-selector-button:hover {
     transform: translateY(-2px);
 }
 
-.button.test {
+.button.clear {
     background: linear-gradient(135deg, #475569, #334155);
 }
 
-.button.test:hover {
+.button.clear:hover {
     background: linear-gradient(135deg, #64748b, #475569);
+    transform: translateY(-2px);
+}
+
+.button.test {
+    background: linear-gradient(135deg, #476952, #335539);
+}
+
+.button.test:hover {
+    background: linear-gradient(135deg, #648b6c, #476952);
     transform: translateY(-2px);
 }
 
