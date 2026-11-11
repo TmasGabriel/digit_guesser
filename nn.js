@@ -37,40 +37,41 @@ export function softmax(rawOut) {
     return exps.map(x => x / sum);
 }
 
-export function addSoftmax(fpropOut) {
-    fpropOut[1][fpropOut[1].length - 1] = softmax(fpropOut[1][fpropOut[1].length - 1]);
-    return fpropOut;
-}
+const leakyReLUHP = 0.01;
 
 export function fprop(initInput, net, dropoutRate) {
     let input = initInput;
     const lenNet = net[0].length;
-    const rawOut = [];
-    const actiOut = [];
+    const logits = [];
+    const activations = [];
     const dropoutMasks = [];
     
-    for (let k = 0; k < lenNet; k++) {
-        const scale = k == lenNet - 1 ? 1 : 1 / (1 - dropoutRate);
-        const mask = net[0][k].map(() => (k == lenNet - 1 || Math.random() > dropoutRate ? 1 : 0));
-        const actiLayer = [];
-        const rawLayer = [];
-        for (let i = 0; i < net[0][k].length; i++) {
+    for (let i = 0; i < lenNet; i++) {
+        const scale = i == lenNet - 1 ? 1 : 1 / (1 - dropoutRate);
+        const mask = net[0][i].map(() => (i == lenNet - 1 || Math.random() > dropoutRate ? 1 : 0));
+        const layerActivations = [];
+        const layerLogits = [];
+        for (let j = 0; j < net[0][i].length; j++) {
             let f = 0;
-            for (let j = 0; j < input.length; j++) {
-                f += input[j] * net[1][k][i][j]; // mult by weight
+            for (let k = 0; k < input.length; k++) {
+                f += input[k] * net[1][i][j][k]; // mult by weight
             }
-            f += net[0][k][i]; // add bias
-            f *= (mask[i] * scale); // dropout
-            const y = k+1 == lenNet ? f : Math.max(0, f); // <- ReLU for non output layers
-            actiLayer.push(y);
-            rawLayer.push(f);
+            f += net[0][i][j]; // add bias
+            f *= mask[j] * scale; // dropout
+            layerLogits.push(f);
+            if (i+1 < lenNet) {
+                const leakyReLU = f > 0 ? f : leakyReLUHP * f; // <- ReLU for non output layers
+                layerActivations.push(leakyReLU);
+            }
+            
         }
+
         dropoutMasks.push(mask);
-        rawOut.push(rawLayer);
-        actiOut.push(actiLayer);
-        input = actiLayer;
+        logits.push(layerLogits);
+        activations.push(i+1 == lenNet ? softmax(layerLogits) : layerActivations);
+        input = layerActivations;
     }
-    return [rawOut, actiOut, dropoutMasks];
+    return [logits, activations, dropoutMasks];
 }
 
 // for back prop of weights: summation of all nodes
@@ -80,9 +81,13 @@ export function fprop(initInput, net, dropoutRate) {
 // for back prop of previous node: summation of all nodes
 // ((predicted - target) * (1 if f > 0, 0 if f < 0)[with f being the activation value BEFORE going through ReLU] * (weight))
 
-export function bprop(realVal, rawOut, aFuncOut, net, initInput, dropoutMasks, learningRate, dropoutRate) {
+export function bprop(realVal, rawOut, aFuncOut, net, initInput, dropoutMasks, learningRate) {
     const lastLayer = net[1].length - 1;
-    let gradient = [];
+
+    const biasGradients = new Array(net[1].length);
+    const weightGradients = new Array(net[1].length);
+
+    let outputGradient = [];
 
     for (let i = lastLayer; i >= 0; i--) { // For each layer in the network staring with the last layer
         const prevActivation = (i == 0) ? initInput : aFuncOut[i - 1];
@@ -90,6 +95,8 @@ export function bprop(realVal, rawOut, aFuncOut, net, initInput, dropoutMasks, l
         const numInputs = prevActivation.length;
 
         const delta = new Array(numNodes);
+        biasGradients[i] = new Array(net[1][i].length);
+        weightGradients[i] = new Array(net[1][i].length);
 
         // Calc dL/dz
         if (i == lastLayer) { // On the last layer calc cross entropy output softmax
@@ -100,13 +107,13 @@ export function bprop(realVal, rawOut, aFuncOut, net, initInput, dropoutMasks, l
         } else {
             for (let j = 0; j < numNodes; j++) { // For hidden layers use ReLU unless node is dropped
                 const isDropped = dropoutMasks[i][j] == 0;
-                const ReLUdx = rawOut[i][j] > 0 ? 1 : 0;
+                const ReLUdx = rawOut[i][j] > 0 ? 1 : leakyReLUHP;
 
-                delta[j] = isDropped ? 0 : gradient[j] * ReLUdx;
+                delta[j] = isDropped ? 0 : outputGradient[j] * ReLUdx;
             }
         }
 
-        // Compute gradient to send back (must happen before weights are modified)
+        // Compute output gradient of next node
         const prevGrad = new Array(numInputs).fill(0);
         for (let j = 0; j < numNodes; j++) {
             if (delta[j] == 0) continue; // Skip dropped or dead nodes
@@ -116,17 +123,39 @@ export function bprop(realVal, rawOut, aFuncOut, net, initInput, dropoutMasks, l
             }
         }
 
+        // Update weights
         for (let j = 0; j < numNodes; j++) {
-            if (delta[j] == 0) continue; // Skip dropped or dead nodes
+            if (delta[j] == 0) { // Skip dropped or dead nodes
+                biasGradients[i][j] = 0;
+                weightGradients[i][j] = new Array(net[1][i][j].length).fill(0);
+                continue;
+            }
 
-            net[0][i][j] -= learningRate * delta[j]; // Update bias
+            biasGradients[i][j] = delta[j]; // Update bias
 
+            weightGradients[i][j] = new Array(net[1][i][j].length);
             for (let k = 0; k < numInputs; k ++) {
-                const weightGrad = delta[j] * prevActivation[k];
-                net[1][i][j][k] -= learningRate * weightGrad;
+                weightGradients[i][j][k] = delta[j] * prevActivation[k];  // Update weight
             }
         }
 
-        gradient = prevGrad;
+        outputGradient = prevGrad;
+    }
+    return { biases: biasGradients, weights: weightGradients };
+}
+
+
+
+export function updateWeights(net, gradients, learningRate) {
+    for (let i = 0; i < net[1].length; i++) {
+        for (let j = 0; j < net[1][i].length; j++) {
+
+            net[0][i][j] -= learningRate * gradients.biases[i][j];
+
+            // Clip and update weights
+            for (let k = 0; k < net[1][i][j].length; k++) {
+                net[1][i][j][k] -= learningRate * gradients.weights[i][j][k];
+            }
+        }
     }
 }

@@ -53,11 +53,7 @@ export function poolCanvas(sourceCanvas, poolSize) {
                     const g = sourceData[sourceIndex + 1];
                     const b = sourceData[sourceIndex + 2];
 
-                    // Since we're only using black and white,
-                    // we only need to determine whether
-                    // this pixel is black.
-                    const brightness =
-                        (r + g + b) / 3;
+                    const brightness = (r + g + b) / 3;
 
                     if (brightness < THRESHOLD) {
                         hasBlackPixel = true;
@@ -70,12 +66,9 @@ export function poolCanvas(sourceCanvas, poolSize) {
                 }
             }
 
-            // Black if the region contained ANY black pixel.
-            // Otherwise white.
             const value = hasBlackPixel ? 0 : 255;
 
-            const outputIndex =
-                (y * newWidth + x) * 4;
+            const outputIndex = (y * newWidth + x) * 4;
 
             outputData[outputIndex] = value;
             outputData[outputIndex + 1] = value;
@@ -87,6 +80,71 @@ export function poolCanvas(sourceCanvas, poolSize) {
     outputCtx.putImageData(outputImage, 0, 0);
 
     return outputCanvas;
+}
+
+export function rotateImage(arr, theta) {
+    const rotatedImg = new Array(arr.length);
+    const N = Math.sqrt(arr.length);
+    const c = (N - 1) / 2;
+
+    const cos = Math.cos(theta);
+    const sin = Math.sin(theta);
+    for (let y = 0; y < N; y++) {
+        for (let x = 0; x < N; x++) {
+            const dx = x - c;
+            const dy = y - c;
+
+            const rx = Math.round(dx * cos + dy * sin + c);
+            const ry = Math.round(-dx * sin + dy * cos + c);
+            
+            if (rx >= 0 && rx < N && ry >= 0 && ry < N) {
+                rotatedImg[y * N + x] = arr[ry * N + rx];
+            } else {
+                rotatedImg[y * N + x] = 0;
+            }
+        }
+    }
+
+    return rotatedImg;
+}
+
+export function scaleImage(arr, factor) {
+    const scaledImg = new Array(arr.length);
+    const N = Math.sqrt(arr.length);
+    const c = (N - 1) / 2;
+
+    for (let y = 0; y < N; y++) {
+        for (let x = 0; x < N; x++) {
+            const sx = Math.round((x - c) / factor + c);
+            const sy = Math.round((y - c) / factor + c);
+
+            if (sx >= 0 && sx < N && sy >= 0 && sy < N) {
+                scaledImg[y * N + x] = arr[sy * N + sx];
+            } else {
+                scaledImg[y * N + x] = 0;
+            }
+        }
+    }
+    return scaledImg;
+}
+
+
+export function offsetImage(arr, tx, ty) {
+    const offsetedImg = new Array(arr.length).fill(0);
+    const N = Math.sqrt(arr.length);
+
+    for (let y = 0; y < N; y++) {
+        for (let x = 0; x < N; x++) {
+            const sx = x - tx;
+            const sy = y - ty;
+
+            if (sx >= 0 && sx < N && sy >= 0 && sy < N) {
+                offsetedImg[y * N + x] = arr[sy * N + sx];
+            }
+        }
+    }
+
+    return offsetedImg;
 }
 
 export function showPooledCanvas(pooledCanvas, canvasContainer) {
